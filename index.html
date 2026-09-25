@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>トリッカル プレミアムショップ分析・比較サイト</title>
+  <title>トリッカル 課金計画サイト</title>
   <style>
     /* 全体：背景は絵本風のやわらかいグリーンチェック柄（案A） */
     body { 
@@ -37,7 +37,7 @@
       border-color: #27ae60;
     }
     
-    /* 通常のアクティブタブ：ゴールディのプレミアムゴールド */
+    /* 通常のアクティブタブ */
     .tab-button.active { 
       background: linear-gradient(135deg, #f39c12, #d4af37); 
       color: #ffffff; 
@@ -190,8 +190,19 @@
       </thead>
       <tbody id="tableBody"></tbody>
     </table>
-  </div>
 
+  </div>
+<!-- 作者メモ・お知らせ枠 -->
+  <div class="author-notice" style="background: #ffffff; border: 1px solid #d4c5b3; border-left: 5px solid #f39c12; border-radius: 6px; padding: 12px 16px; margin-bottom: 15px; font-size: 13px; line-height: 1.6; color: #4a3c31;">
+    <h2 style="font-size: 14px; margin: 0 0 6px 0; color: #5c4308;">作者からのお知らせ</h2>
+    <p style="margin: 0 0 4px 0;">個人で趣味で管理・運用しているサイトです。</p>
+    <ul style="margin: 4px 0 0 18px; padding: 0;">
+      <li>個人開発のため、アップデートやデータ更新が予告なく止まる可能性があります。あらかじめご了承ください。</li>
+      <li><strong>今後追加予定の要素：</strong> カート計算機能などの追加を検討中です。</li>
+      <li>不具合の報告や「こういう機能がほしい」といったご要望は、<a href="https://github.com/kinopill0789/Billing-Planning-for-Trickcal/issues" target="_blank" rel="noopener">GitHub Issues</a> までお気軽にお寄せください！</li>
+    </ul>
+  </div>
+  
   <script>
     const ALL_FILES = [
       { name: '特別構成商品', file: 'Special_Bundle.json' },
