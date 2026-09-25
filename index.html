@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>トリッカル プレミアムショップ分析・比較サイト</title>
+  <style>
+    /* 全体：背景は絵本風のやわらかいグリーンチェック柄（案A） */
+    body { 
+      font-family: sans-serif; 
+      padding: 20px; 
+      background-color: #f0f7f2; 
+      background-image: 
+        repeating-linear-gradient(45deg, #e3f2e7 0, #e3f2e7 15px, transparent 0, transparent 30px),
+        repeating-linear-gradient(-45deg, #e3f2e7 0, #e3f2e7 15px, transparent 0, transparent 30px);
+      color: #3e3223; 
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    /* タブボタンエリア */
+    .tab-container { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+    .tab-button { 
+      padding: 10px 16px; 
+      border: 2px solid #e2e8f0; 
+      background-color: #ffffff; 
+      color: #5c4308; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      font-weight: bold; 
+      transition: all 0.2s;
+    }
+    .tab-button:hover {
+      border-color: #27ae60;
+    }
+    
+    /* 通常のアクティブタブ：ゴールディのプレミアムゴールド */
+    .tab-button.active { 
+      background: linear-gradient(135deg, #f39c12, #d4af37); 
+      color: #ffffff; 
+      border-color: #b8860b;
+      box-shadow: 0 2px 5px rgba(212, 175, 55, 0.3);
+    }
+
+    /* 全ショップ一括タブ：エリーフグリーン */
+    .tab-button.all-tab { 
+      background-color: #e8f8f0; 
+      color: #1e8449; 
+      border-color: #2ecc71; 
+    }
+    .tab-button.all-tab.active { 
+      background: linear-gradient(135deg, #2ecc71, #27ae60); 
+      color: white; 
+      border-color: #1e8449;
+      box-shadow: 0 2px 5px rgba(39, 174, 96, 0.3); 
+    }
+    
+    /* コントロールバー */
+    .controls { 
+      display: flex; 
+      gap: 15px; 
+      margin-bottom: 15px; 
+      background: #faf8f5; 
+      padding: 12px 16px; 
+      border-radius: 8px; 
+      align-items: center; 
+      flex-wrap: wrap; 
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+      border: 1px solid #e8dfd1;
+    }
+    .control-group { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: bold; color: #5c4308; }
+    select, input[type="text"] { 
+      padding: 6px 10px; 
+      border-radius: 4px; 
+      border: 1px solid #ccc; 
+      font-size: 14px; 
+      background: #fff;
+    }
+    select:focus, input[type="text"]:focus {
+      border-color: #27ae60;
+      outline: none;
+    }
+    
+    #firstBonusContainer { display: none; background: #fff9e6; padding: 4px 10px; border-radius: 6px; border: 1px solid #f39c12; color: #7e5109; }
+
+    /* テーブルラッパー（スマホでの横スクロール用） */
+    .table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      background: #fff;
+    }
+
+    /* テーブルデザイン */
+    table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #e8dfd1; min-width: 650px; }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #f0ece1; font-size: 14px; }
+    
+    /* ヘッダー：ゴールド */
+    th { 
+      background: linear-gradient(to right, #d4af37, #c59b27); 
+      color: #ffffff; 
+      white-space: nowrap; 
+      text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+    }
+    
+    /* ホバー時：ほんのり薄緑 */
+    tr:hover { background-color: #f2faf4; }
+    
+    .highlight { font-weight: bold; color: #d35400; }
+    .shop-tag { font-size: 11px; background: #6c757d; color: #fff; padding: 2px 6px; border-radius: 4px; margin-right: 6px; font-weight: bold; }
+
+    /* スマホ表示用レスポンシブ設定 */
+    @media (max-width: 768px) {
+      body { padding: 10px; }
+      h1 { font-size: 18px; }
+      .controls { flex-direction: column; align-items: stretch; gap: 10px; }
+      .control-group { justify-content: space-between; }
+      select, input[type="text"] { width: 60%; }
+      .tab-button { padding: 8px 12px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>トリッカル プレミアムショップ分析・比較サイト</h1>
+
+  <!-- タブボタン -->
+  <div class="tab-container">
+    <button class="tab-button all-tab" onclick="switchShop('ALL', this)">全ショップ一括</button>
+    <button class="tab-button active" onclick="switchShop('Special_Bundle.json', this)">特別構成商品</button>
+    <button class="tab-button" onclick="switchShop('Elif_Shop.json', this)">エリーフショップ</button>
+    <button class="tab-button" onclick="switchShop('Monthly_Pass.json', this)">月間パス</button>
+    <button class="tab-button" onclick="switchShop('Elief_Products.json', this)">エリーフ商品</button>
+    <button class="tab-button" onclick="switchShop('Weekly_Pack.json', this)">週間パック</button>
+    <button class="tab-button" onclick="switchShop('Monthly_Pack.json', this)">月間パック</button>
+  </div>
+
+  <!-- コントロールバー -->
+  <div class="controls">
+    <div class="control-group">
+      <label for="sortSelect">並び替え:</label>
+      <select id="sortSelect" onchange="renderTable()">
+        <option value="default">デフォルト順</option>
+        <option value="costPerformanceDesc">コスパが高い順</option>
+        <option value="costPerformanceAsc">コスパが低い順</option>
+        <option value="priceAsc">価格が安い順</option>
+        <option value="priceDesc">価格が高い順</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label for="filterSelect">コスト区分:</label>
+      <select id="filterSelect" onchange="renderTable()">
+        <option value="all">すべて</option>
+        <option value="paidOnly">有料（課金orエリーフ消費）</option>
+        <option value="freeOnly">完全無料（コスト0）</option>
+      </select>
+    </div>
+
+    <!-- アイテム・キーワード検索 -->
+    <div class="control-group">
+      <label for="searchInput">アイテム/名称絞り込み:</label>
+      <input type="text" id="searchInput" placeholder="例: エリーフ,チケット" oninput="renderTable()">
+    </div>
+
+    <!-- 初回ボーナス適用チェックボックス（全ショップ一括、エリーフ商品で表示） -->
+    <div id="firstBonusContainer" class="control-group">
+      <input type="checkbox" id="firstBonusCheck" onchange="renderTable()">
+      <label for="firstBonusCheck">初回2倍ボーナス適用</label>
+    </div>
+  </div>
+
+  <!-- テーブルをレスポンシブ用のラッパーで囲む -->
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 40px; text-align: center;">選択</th>
+          <th>商品名</th>
+          <th>購入制限</th>
+          <th id="costHeader">価格 / 購入コスト</th>
+          <th>総獲得エリーフ換算</th>
+          <th>コスパ (石/円)</th>
+          <th>内容 / 特典</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const ALL_FILES = [
+      { name: '特別構成商品', file: 'Special_Bundle.json' },
+      { name: 'エリーフショップ', file: 'Elif_Shop.json' },
+      { name: '月間パス', file: 'Monthly_Pass.json' },
+      { name: 'エリーフ商品', file: 'Elief_Products.json' },
+      { name: '週間パック', file: 'Weekly_Pack.json' },
+      { name: '月間パック', file: 'Monthly_Pack.json' }
+    ];
+
+    const SHOP_COLORS = {
+      '特別構成商品': '#e83e8c',
+      'エリーフショップ': '#fd7e14',
+      '月間パス': '#20c997',
+      'エリーフ商品': '#007bff',
+      '週間パック': '#6f42c1',
+      '月間パック': '#17a2b8'
+    };
+
+    let currentData = [];
+    let currentFileName = '';
+
+    function switchShop(fileName, btn) {
+      document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFileName = fileName;
+
+      const costHeader = document.getElementById('costHeader');
+      costHeader.textContent = (fileName === 'Elif_Shop.json') ? '消費コスト' : '価格 / 購入コスト';
+
+      // エリーフ商品または全ショップ一括の場合に初回ボーナスを表示
+      const bonusContainer = document.getElementById('firstBonusContainer');
+      bonusContainer.style.display = (fileName === 'Elief_Products.json' || fileName === 'ALL') ? 'flex' : 'none';
+
+      if (fileName === 'ALL') {
+        Promise.all(ALL_FILES.map(shop => 
+          fetch(shop.file)
+            .then(res => res.json())
+            .then(data => data.map(item => ({ ...item, _shopName: shop.name, _fileName: shop.file })))
+            .catch(() => [])
+        )).then(results => {
+          currentData = results.flat();
+          renderTable();
+        });
+      } else {
+        fetch(fileName)
+          .then(res => {
+            if (!res.ok) throw new Error(`ファイルが見つかりません (${res.status})`);
+            return res.json();
+          })
+          .then(data => {
+            currentData = data.map(item => ({ ...item, _fileName: fileName }));
+            renderTable();
+          })
+          .catch(err => {
+            document.getElementById('tableBody').innerHTML = `<tr><td colspan="7" style="color:red;">[エラー] 読み込みに失敗しました: ${err.message}</td></tr>`;
+          });
+      }
+    }
+
+    function renderTable() {
+      if (!currentData || currentData.length === 0) return;
+
+      const isFirstBonus = document.getElementById('firstBonusCheck').checked;
+      const searchKeyword = document.getElementById('searchInput').value.trim().toLowerCase();
+
+      let processedData = currentData.map(item => {
+        const itemFileName = item._fileName || currentFileName;
+        const price = parseFloat(item['価格(yen)']) || 0;
+        const consumePaid = parseFloat(item['消費有料エリーフ']) || parseFloat(item['価格_有料エリーフ']) || 0;
+        const consumeFree = parseFloat(item['消費無料エリーフ']) || parseFloat(item['価格_無料エリーフ']) || 0;
+
+        let paidElif = parseFloat(item['有料エリーフ']) || parseFloat(item['獲得有料エリーフ']) || 0;
+        let freeElif = parseFloat(item['無料エリーフ']) || parseFloat(item['獲得無料エリーフ']) || 0;
+
+        // エリーフ商品のアイテムのみ初回ボーナス対象
+        if (isFirstBonus && itemFileName === 'Elief_Products.json') {
+          paidElif *= 2;
+          freeElif *= 2;
+        }
+
+        let ticketCount = 0;
+        const ticketKeys = [
+          '使徒募集チケット', '性格募集チケット', 'カードガチャチケット',
+          '★3純粋の使徒ガチャチケット', '★3冷静の使徒ガチャチケット', 
+          '★3狂気の使徒ガチャチケット', '★3活発の使徒ガチャチケット', 
+          '★3憂鬱の使徒ガチャチケット', '★3超特別募集チケット'
+        ];
+        ticketKeys.forEach(key => {
+          if (item[key]) ticketCount += parseFloat(item[key]) || 0;
+        });
+
+        const isCompletelyFree = (price === 0 && consumePaid === 0 && consumeFree === 0);
+
+        let costText = '-';
+        if (itemFileName === 'Elif_Shop.json') {
+          if (consumePaid > 0) costText = `有料エリーフ ${consumePaid.toLocaleString()}個`;
+          else if (consumeFree > 0) costText = `無料エリーフ ${consumeFree.toLocaleString()}個`;
+          else if (isCompletelyFree) costText = '無料';
+        } else {
+          costText = price > 0 ? '¥' + price.toLocaleString() : (isCompletelyFree ? '無料' : '-');
+        }
+
+        let totalElifValue = 0;
+        let costPerfNum = 0;
+
+        if (itemFileName !== 'Elif_Shop.json') {
+          totalElifValue = paidElif + freeElif + (ticketCount * 100);
+          if (price > 0 && totalElifValue > 0) {
+            costPerfNum = totalElifValue / price;
+          }
+        }
+
+        const extraItems = [];
+        const ignoreKeys = ['商品名', '購入可能数', '価格(yen)', '有料エリーフ', '無料エリーフ', '消費有料エリーフ', '消費無料エリーフ', '価格_有料エリーフ', '価格_無料エリーフ', '備考', '_shopName', '_fileName'];
+        for (const [key, val] of Object.entries(item)) {
+          if (ignoreKeys.includes(key)) continue;
+          if (val !== "" && val !== null && val !== undefined && val !== 0) {
+            extraItems.push(`${key}: ${val}`);
+          }
+        }
+        const extraText = extraItems.length > 0 ? extraItems.join(', ') : '-';
+
+        return {
+          raw: item,
+          shopName: item._shopName || '',
+          name: item['商品名'] || '-',
+          limit: item['購入可能数'] || '-',
+          price: price,
+          isCompletelyFree: isCompletelyFree,
+          costText: costText,
+          totalElifValue: totalElifValue,
+          costPerfNum: costPerfNum,
+          extraText: extraText,
+          fullSearchText: (item['商品名'] + ' ' + extraText).toLowerCase()
+        };
+      });
+
+      // フィルター処理
+      const filterVal = document.getElementById('filterSelect').value;
+      if (filterVal === 'paidOnly') {
+        processedData = processedData.filter(d => !d.isCompletelyFree);
+      } else if (filterVal === 'freeOnly') {
+        processedData = processedData.filter(d => d.isCompletelyFree);
+      }
+
+      if (searchKeyword !== '') {
+        processedData = processedData.filter(d => d.fullSearchText.includes(searchKeyword));
+      }
+
+      // ソート処理
+      const sortVal = document.getElementById('sortSelect').value;
+      if (sortVal === 'costPerformanceDesc') {
+        processedData.sort((a, b) => b.costPerfNum - a.costPerfNum);
+      } else if (sortVal === 'costPerformanceAsc') {
+        // コスパ低い順：コスパ算出可能（> 0）な商品のみ抽出し、低い順に並べる
+        processedData = processedData
+          .filter(d => d.costPerfNum > 0)
+          .sort((a, b) => a.costPerfNum - b.costPerfNum);
+      } else if (sortVal === 'priceAsc') {
+        // 価格が安い順：日本円指定あり（price > 0）を最優先で安い順ソート
+        processedData.sort((a, b) => {
+          if (a.price > 0 && b.price > 0) return a.price - b.price;
+          if (a.price > 0) return -1;
+          if (b.price > 0) return 1;
+          return 0;
+        });
+      } else if (sortVal === 'priceDesc') {
+        processedData.sort((a, b) => b.price - a.price);
+      }
+
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+
+      if (processedData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#888;">該当する商品が見つかりませんでした</td></tr>';
+        return;
+      }
+
+      processedData.forEach(item => {
+        let costPerformanceStr = "-";
+        if (item.price > 0 && item.totalElifValue > 0) {
+          costPerformanceStr = item.costPerfNum.toFixed(2);
+        } else if (item.price === 0 && item.totalElifValue > 0) {
+          costPerformanceStr = "FREE";
+        }
+
+        const tagColor = SHOP_COLORS[item.shopName] || '#6c757d';
+        const shopTag = item.shopName ? `<span class="shop-tag" style="background-color: ${tagColor};">${item.shopName}</span>` : '';
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td style="text-align: center;"><input type="checkbox" class="cart-check"></td>
+          <td>${shopTag}<strong>${item.name}</strong></td>
+          <td>${item.limit}</td>
+          <td>${item.costText}</td>
+          <td>${item.totalElifValue > 0 ? item.totalElifValue.toLocaleString() + ' 個分' : '-'}</td>
+          <td class="highlight">${costPerformanceStr}</td>
+          <td>${item.extraText}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    switchShop('Special_Bundle.json', document.querySelector('.tab-button.active'));
+  </script>
+  <footer style="text-align: center; margin-top: 30px; padding: 15px; font-size: 12px; color: #7f8c8d; border-top: 1px dashed #e8dfd1;">
+    当サイトは『トリッカル』の非公式ファンツールです。使用しているデータの権利はすべて運営・開発元に帰属します。
+  </footer>
+</body>
+</html>
